@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>Diff Report - a1</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
+    th { background-color: #f0f0f0; }
+    .type-ADDED { background-color: #e6ffe6; }
+    .type-REMOVED { background-color: #ffe6e6; }
+    .type-MODIFIED { background-color: #fffbe6; }
+    .chg-del { background-color: #fee2e2; text-decoration: line-through; }
+    .chg-add { background-color: #bbf7d0; }
+    .risk-HIGH td:nth-child(2) { font-weight: bold; color: #b91c1c; }
+    .risk-MEDIUM td:nth-child(2) { font-weight: bold; color: #b45309; }
+    .risk-LOW td:nth-child(2) { color: #047857; }
+  </style>
+</head>
+<body>
+  <h1>Document Versioning Compare</h1>
+  <p><strong>Document:</strong> a1</p>
+  <p><strong>Compare:</strong> v1 → v2</p>
+  
+  <h2>รายละเอียดการเปลี่ยนแปลง</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Risk</th>
+        <th>Section</th>
+        <th>Old Text</th>
+        <th>New Text</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr class="type-ADDED risk-MEDIUM"><td>ADDED</td><td>MEDIUM</td><td>page 1</td><td></td><td><span class="chg-add">ข้อ 5 การใช้คอมพิวเตอร์และอินเทอร์เน็ตของบริษัท<br>พนักงานต้องใช้งานอุปกรณ์คอมพิวเตอร์ อินเทอร์เน็ต และอีเมลของบริษัทเพื่อวัตถุประสงค์ในการท างาน<br>เท่านั้น ห้ามใช้งานเพื่อกิจกรรมส่วนตัวที่อาจก่อให้เกิดความเสียหาย</span></td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

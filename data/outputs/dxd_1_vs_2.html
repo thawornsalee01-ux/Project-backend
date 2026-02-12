@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>Diff Report - dxd</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
+    th { background-color: #f0f0f0; }
+    .type-ADDED { background-color: #e6ffe6; }
+    .type-REMOVED { background-color: #ffe6e6; }
+    .type-MODIFIED { background-color: #fffbe6; }
+    .chg-del { background-color: #fee2e2; text-decoration: line-through; }
+    .chg-add { background-color: #bbf7d0; }
+    .risk-HIGH td:nth-child(2) { font-weight: bold; color: #b91c1c; }
+    .risk-MEDIUM td:nth-child(2) { font-weight: bold; color: #b45309; }
+    .risk-LOW td:nth-child(2) { color: #047857; }
+  </style>
+</head>
+<body>
+  <h1>Document Versioning Compare</h1>
+  <p><strong>Document:</strong> dxd</p>
+  <p><strong>Compare:</strong> 1 → 2</p>
+  
+  <h2>รายละเอียดการเปลี่ยนแปลง</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Risk</th>
+        <th>Section</th>
+        <th>Old Text</th>
+        <th>New Text</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr class="type-MODIFIED risk-MEDIUM"><td>MODIFIED</td><td>MEDIUM</td><td>page 1</td><td>ข้อ 1<span class="chg-del">การเวลาท</span>างานปกติ<br>เวลาท างานปกติของบริษัทคือ วันจันทร์ถึงวันศุกร์ ตั้งแต่เวลา<span class="chg-del">08.30</span>น. ถึง<span class="chg-del">17.30</span>น. โดยมีเวลาพัก 1 ชั่วโมง<span class="chg-del">ระหว่าง</span><br><span class="chg-del">เวลา</span>12.00 น. ถึง 13.00 น.</td><td>ข้อ 1<span class="chg-add">เวลาท</span>างานปกติ<br>เวลาท างานปกติของบริษัทคือ วันจันทร์ถึงวันศุกร์ ตั้งแต่เวลา<span class="chg-add">09.00</span>น. ถึง<span class="chg-add">18.00</span>น. โดยมีเวลาพัก 1 ชั่วโมง<br><span class="chg-add">ระหว่างเวลา</span>12.00 น. ถึง 13.00 น.</td></tr>
+<tr class="type-MODIFIED risk-MEDIUM"><td>MODIFIED</td><td>MEDIUM</td><td>page 2</td><td>ข้อ 2 การลงเวลาปฏิบัติงาน<br>พนักงานต้องลงเวลาการเข้าท<span class="chg-del">างานและออกจากงานผ่านระบบบันทึกเวลา หากพนักงานไม่สามารถลงเวลาได้ ต้องแจ้ง</span><br><span class="chg-del">หัวหน้างานทันที</span></td><td>ข้อ 2 การลงเวลาปฏิบัติงาน<br>พนักงานต้องลงเวลาการเข้าท<span class="chg-add">างานและออกจากงานผ่านระบบสแกนลายนิ้วมือ หากพบปัญหาในการลงเวลา</span><br><span class="chg-add">ให้ติดต่อฝ่ายทรัพยากรบุคคล</span></td></tr>
+<tr class="type-MODIFIED risk-MEDIUM"><td>MODIFIED</td><td>MEDIUM</td><td>page 3</td><td>ข้อ 3 การลาป่วย<br>พนักงานมีสิทธิ์ลาป่วยเมื่อมีอาการเจ็บป่วย<span class="chg-del">โดยต้องแจ้งหัวหน้างานก่อน หรือทันทีที่สามารถแจ้งได้ หากลาป่วยเกิน 2 วัน</span><br><span class="chg-del">ต้องแสดงใบรับรองแพทย์</span></td><td>ข้อ 3 การลาป่วย<br>พนักงานมีสิทธิ์ลาป่วยเมื่อมีอาการเจ็บป่วย<span class="chg-add">และต้องแจ้งหัวหน้างานทันที หากลาป่วยตั้งแต่ 1 วันขึ้นไป แสดง</span><br><span class="chg-add">ใบรับรองแพทย์ได้ถือว่าเป็นประโยชน์ต่อบริษัท</span></td></tr>
+<tr class="type-MODIFIED risk-MEDIUM"><td>MODIFIED</td><td>MEDIUM</td><td>page 4</td><td>ข้อ 4 การลาพักร้อนประจ าปี<br><span class="chg-del">พนักงานมีสิทธิ์ลาพักร้อนประจ าปี 6 วันหลังจากท</span>างานครบ 1<span class="chg-del">ปี และสามารถสะสมวันลาพักร้อนได้สูงสุดไม่เกิน 10</span>วัน</td><td>ข้อ 4 การลาพักร้อนประจ าปี<br><span class="chg-add">พนักงานที่ท</span>างานครบ 1<span class="chg-add">ปีมีสิทธิ์ลาพักร้อนประจ าปี 8</span>วัน<span class="chg-add">และสามารถสะสมวันลาพักร้อนได้ไม่เกิน 12 วัน</span></td></tr>
+<tr class="type-MODIFIED risk-MEDIUM"><td>MODIFIED</td><td>MEDIUM</td><td>page 7</td><td>ข้อ<span class="chg-del">5 การรักษาความลับของบริษัท</span><br><span class="chg-del">พนักงานต้องรักษาความลับของบริษัท และห้ามเปิดเผยข้อมูลส าคัญให้บุคคลที่ไม่เกี่ยวข้องทราบ</span></td><td>ข้อ<span class="chg-add">7 มาตรการรักษาความปลอดภัย</span><br><span class="chg-add">พนักงานต้องปฏิบัติตามมาตรการด้านความปลอดภัยของบริษัท รวมถึงการตรวจสอบบัตรผ่านเข้าออกอาคาร<br>และการรักษาความปลอดภัยข้อมูล</span></td></tr>
+<tr class="type-MODIFIED risk-LOW"><td>MODIFIED</td><td>LOW</td><td>page 6</td><td>ข้อ 6<span class="chg-del">การแต่งกายในการปฏิบัติงาน</span><br><span class="chg-del">พนักงานต้องแต่งกายสุภาพเรียบร้อย เหมาะสมกับการปฏิบัติงาน และสวมบัตรพนักงานตลอดเวลาที่อยู่ภายในบริษัท</span></td><td>ข้อ 6<span class="chg-add">การแต่งกายในการท างาน</span><br><span class="chg-add">พนักงานต้องแต่งกายสุภาพเรียบร้อยตามความเหมาะสม และต้องสวมบัตรพนักงานตลอดเวลาขณะอยู่ใน<br>อาคารส านักงาน</span></td></tr>
+<tr class="type-ADDED risk-MEDIUM"><td>ADDED</td><td>MEDIUM</td><td>page 5</td><td></td><td><span class="chg-add">ข้อ 5 การใช้คอมพิวเตอร์และอินเทอร์เน็ตของบริษัท<br>พนักงานต้องใช้งานอุปกรณ์คอมพิวเตอร์ อินเทอร์เน็ต และอีเมลของบริษัทเพื่อวัตถุประสงค์ในการท างาน<br>เท่านั้น ห้ามใช้งานเพื่อกิจกรรมส่วนตัวที่อาจก่อให้เกิดความเสียหาย</span></td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

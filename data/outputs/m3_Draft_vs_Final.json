@@ -1,0 +1,38 @@
+{
+  "document_name": "m3",
+  "version_old": "Draft",
+  "version_new": "Final",
+  "changes": [
+    {
+      "change_type": "MODIFIED",
+      "edit_severity": "LIGHT",
+      "risk_level": "MEDIUM",
+      "section_label": "page 5",
+      "old_text": "2. เวลาทำงานปกติ\nเช้า  ตั้งแต่เวลา 09.00 น.\nถึง 12.00 น.\nบ่าย ตั้งแต่เวลา 13.00 น.\nถึง 17.00 น.",
+      "new_text": "2. เวลาทำงานปกติ\nเช้า  ตั้งแต่เวลา 08.30 น.\nถึง 12.00 น.\nบ่าย ตั้งแต่เวลา 13.00 น.\nถึง 17.30 น.",
+      "coverage": 1.0,
+      "mean_similarity": 0.9939099306368792
+    },
+    {
+      "change_type": "REMOVED",
+      "edit_severity": "HEAVY",
+      "risk_level": "LOW",
+      "section_label": "page 6",
+      "old_text": "8. ลาสมรส",
+      "new_text": null,
+      "coverage": null,
+      "mean_similarity": null
+    },
+    {
+      "change_type": "REMOVED",
+      "edit_severity": "HEAVY",
+      "risk_level": "MEDIUM",
+      "section_label": "page 8",
+      "old_text": "8. การลาสมรส\n1) พนักงานที่มีอายุงานครบ 1 ปี มีสิทธิ์ลาสมรสได้ไม่เกิน 3 วัน โดยได้รับค่าจ้าง\n2) พนักงานจะต้องยื่นใบลาต่อผู้บังคับบัญชาล่วงหน้าไม่น้อยกว่า 7 วัน และให้ใช้สิทธิ์เพียงครั้ง\nเดียวตลอดระยะเวลาที่ทำงานกับบริษัทฯ\n3) พนักงานต้องนำหลักฐานการลาสมรส เช่น สำเนาทะเบียนสมรส หรือบัตรเชิญ เป็นต้น มา\nแสดงเป็นหลักฐานประกอบการลา ภายใน 15 วัน หลังจากวันสมรส",
+      "new_text": null,
+      "coverage": null,
+      "mean_similarity": null
+    }
+  ],
+  "generated_at": "2026-01-20T10:19:47.687256"
+}
