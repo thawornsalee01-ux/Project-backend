@@ -172,3 +172,45 @@ class DocumentPageText(Base):
 
     # relationship (optional แต่แนะนำให้มี)
     document = relationship("Document", backref="page_texts")
+
+#******memory table ******
+
+class ChatConversation(Base):
+    __tablename__ = "chat_conversations"
+
+    id = Column(Integer, primary_key=True)
+    change_id = Column(Integer, index=True)     # ผูกกับเอกสาร change
+    user_id = Column(Integer, nullable=True)    # optional
+    title = Column(String, nullable=True)       # optional (ชื่อห้อง)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True)
+
+    conversation_id = Column(
+        Integer,
+        ForeignKey("chat_conversations.id"),
+        index=True
+    )
+
+    role = Column(String)     # system / user / assistant / tool
+    content = Column(Text)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class ChatSummary(Base):
+    __tablename__ = "chat_summaries"
+
+    id = Column(Integer, primary_key=True)
+
+    conversation_id = Column(
+        Integer,
+        ForeignKey("chat_conversations.id"),
+        unique=True
+    )
+
+    summary = Column(Text)
+    updated_at = Column(DateTime, default=datetime.utcnow)

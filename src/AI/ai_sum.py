@@ -184,7 +184,7 @@ def build_summary_text(changes: List[Change]) -> dict:
 ข้อความสรุปทั้งเอกสาร:
 {summary_text}
 
-ให้คุณประเมินผลกระทบเป็นคะแนน 0-5 (ตัวเลข) และให้ "overall_risk_level" เป็น LOW | MEDIUM | HIGH
+ให้คุณประเมินผลกระทบเป็นคะแนน 0-100 (ตัวเลข) และให้ "overall_risk_level" เป็น LOW | MEDIUM | HIGH
 
 ตอบเป็น JSON เท่านั้น ตามโครงสร้างนี้:
 
