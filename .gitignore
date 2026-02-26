@@ -1,8 +1,24 @@
-
-data/chroma
-data/samples
-data/output
-venv/
-.env
+# Python
 __pycache__/
-*.pyc 
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.env/
+
+# Environment file
+.env
+
+# Database
+*.db
+
+# Project data
+data/chroma/
+data/samples/
+data/outputs/
+
+# OS
+.DS_Store
+Thumbs.db

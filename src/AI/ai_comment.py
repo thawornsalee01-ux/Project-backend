@@ -24,6 +24,20 @@ llm = ChatOpenAI(
 )
 
 # ==================================================
+# VALID CHANGE CATEGORY
+# ==================================================
+VALID_CATEGORIES = {
+    "scope",
+    "timeline",
+    "cost",
+    "resource",
+    "risk",
+    "contract",
+    "stakeholder",
+    "architecture"
+}
+
+# ==================================================
 # Utility: Safe JSON Parser
 # ==================================================
 def _safe_parse_json(raw: str) -> dict:
@@ -44,29 +58,246 @@ def _safe_parse_json(raw: str) -> dict:
             return {}
 
 # ==================================================
-# Generate ai_comment (ASYNC) — ตัด risk ออกแล้ว
+# Generate FULL AI Analysis (ASYNC)
 # ==================================================
 async def generate_ai_comment(change: Change) -> None:
     """
-    วิเคราะห์ change แบบ independent (async)
-    เวอร์ชันนี้: เก็บเฉพาะ ai_comment เท่านั้น (ไม่มี risk)
+    วิเคราะห์ change แบบ full analysis:
+    - paragraph_topic
+    - change_category
+    - ai_comment
+    - change_details ⭐ NEW
     """
 
-    prompt = ChatPromptTemplate.from_template(""" 
-คุณคือผู้เชี่ยวชาญด้าน **กฎหมาย การเงิน และการบริหารโครงการ**
+    prompt = ChatPromptTemplate.from_template("""
+คุณคือผู้เชี่ยวชาญด้าน กฎหมาย การเงิน และการบริหารโครงการ
 
-หน้าที่ของคุณคือ:
-- ระบุสิ่งที่เปลี่ยนแปลงอย่างละเอียดระหว่าง ข้อความเดิม และ ข้อความใหม่ 
-   ***เน้นย้ำว่าต้องละเอียดตอบยาวได้ตามความเหมาะสมแต่ไม่เกิน800token***
-- หากมีการแก้ไขเพียงเล็กน้อย เช่น การแก้ไขการพิมพ์ การจัดรูปแบบ หรือการสะกดคำ หรือทุกอย่างที่อาจเกิดความผิดพลาดจากการพิมพ์
-   ไม่ต้องระบุรายละเอียดของการสะกดคำหรือการพิมพ์ 
-   แต่ให้ระบุว่า "ไม่พบความเสี่ยงที่มีนัยสำคัญจากการเปลี่ยนแปลงนี้"
-- หากการแก้ไขมีการลบหรือเพิ่มข้อมูลหรือเนื้อหาสาระเปลี่ยนแปลง
-   ควรระบุรายละเอียดให้ครบถ้วน
+งานของคุณมี 4 ส่วน:
 
-เงื่อนไขพิเศษ:
-- ห้ามระบุชื่อตัวแปรลงใน ai_comment
-- ห้ามมีmarkdown หรือการเน้นข้อความเช่น **ข้อความ**
+========================================
+1) สรุปหัวข้อหลักของข้อความใหม่ (paragraph_topic)
+========================================
+
+========================================
+2) จัดประเภทการเปลี่ยนแปลง (change_category)
+========================================
+
+IMPORTANT:
+ต้องเลือกเพียง 1 หมวดเท่านั้น
+ต้องเลือกจากนิยามด้านล่างอย่างเคร่งครัด
+ห้ามตีความเกินนิยาม
+ห้ามเดา
+ถ้าเข้าได้หลายหมวด ให้ใช้ PRIORITY RULE
+
+
+====================================================
+DEFINITION OF CHANGE CATEGORIES (STRICT RULE)
+====================================================
+
+1️⃣ scope
+ความหมาย:
+การเปลี่ยนขอบเขตของงานหรือสิ่งที่ต้องส่งมอบ
+
+รวมถึง:
+- จำนวนงาน
+- ปริมาณสินค้า
+- รายการ deliverable
+- feature ที่ต้องทำ
+- สิ่งที่รวม / ไม่รวมในโครงการ
+- requirement specification
+
+ตัวอย่าง:
+เพิ่ม feature ใหม่
+ลดจำนวนเครื่อง
+เพิ่ม module
+ตัดงานบางส่วนออก
+
+ไม่รวม:
+ระยะเวลา → timeline
+งบประมาณ → cost
+
+
+----------------------------------
+
+2️⃣ timeline
+ความหมาย:
+การเปลี่ยนแปลงกำหนดเวลา หรือ schedule
+
+รวมถึง:
+- deadline
+- milestone
+- duration
+- phase
+- implementation period
+- delivery schedule
+
+ตัวอย่าง:
+เลื่อนกำหนดส่ง
+เพิ่มระยะเวลาดำเนินงาน
+เปลี่ยน milestone
+
+ไม่รวม:
+ขอบเขตงาน → scope
+
+
+----------------------------------
+
+3️⃣ cost
+ความหมาย:
+การเปลี่ยนแปลงด้านการเงินหรือค่าใช้จ่าย
+
+รวมถึง:
+- budget
+- pricing
+- payment
+- financial term
+- funding
+- cost allocation
+- penalty ที่เป็นเงิน
+
+ตัวอย่าง:
+เพิ่มงบ
+ลดราคา
+เปลี่ยน payment term
+
+
+----------------------------------
+
+4️⃣ resource
+ความหมาย:
+การเปลี่ยนแปลงทรัพยากรที่ใช้ทำงาน
+
+รวมถึง:
+- manpower
+- staffing
+- team structure
+- skill requirement
+- equipment
+- tools
+
+ตัวอย่าง:
+เพิ่มคน
+ลดทีม
+เปลี่ยน role
+ใช้เครื่องมือใหม่
+
+
+----------------------------------
+
+5️⃣ risk
+ความหมาย:
+การเปลี่ยนแปลงที่ส่งผลต่อระดับความเสี่ยงโดยตรง
+
+รวมถึง:
+- uncertainty
+- exposure
+- mitigation
+- contingency
+- risk allocation
+- risk responsibility
+
+ตัวอย่าง:
+เพิ่มเงื่อนไขเสี่ยง
+เพิ่มข้อจำกัด
+เพิ่ม dependency
+
+
+----------------------------------
+
+6️⃣ contract
+ความหมาย:
+การเปลี่ยนข้อกำหนดทางกฎหมายหรือสัญญา
+
+รวมถึง:
+- liability
+- obligation
+- SLA
+- warranty
+- termination clause
+- penalty (เชิงกฎหมาย)
+- legal responsibility
+
+ตัวอย่าง:
+เพิ่มข้อผูกพัน
+เปลี่ยนเงื่อนไขสัญญา
+
+
+----------------------------------
+
+7️⃣ stakeholder
+ความหมาย:
+การเปลี่ยนแปลงผู้มีส่วนได้ส่วนเสียหรือบทบาทของพวกเขา
+
+รวมถึง:
+- authority
+- responsibility
+- governance
+- approval role
+- reporting line
+- communication structure
+
+ตัวอย่าง:
+เพิ่มหน่วยงานใหม่
+เปลี่ยนผู้อนุมัติ
+
+
+----------------------------------
+
+8️⃣ architecture
+ความหมาย:
+การเปลี่ยนแปลงโครงสร้างระบบหรือการออกแบบเทคนิค
+
+รวมถึง:
+- system design
+- technical structure
+- platform
+- integration
+- infrastructure
+- data architecture
+
+ตัวอย่าง:
+เปลี่ยนระบบ backend
+เปลี่ยน platform
+เปลี่ยน integration
+
+
+====================================================
+PRIORITY RULE (ถ้าเข้าได้หลายหมวด)
+====================================================
+
+contract > cost > scope > timeline > resource > architecture > stakeholder > risk
+
+เลือกตัวที่ priority สูงกว่า
+
+
+====================================================
+3) วิเคราะห์การเปลี่ยนแปลงอย่างละเอียด (ai_comment)
+====================================================
+- ตอบเป็นภาษาไทย
+- ถ้าเป็นการแก้ไขเว้นวรรคหรือสระ, การสะกด ให้ตอบสั้นๆ
+
+====================================================
+4) ระบุรายการสิ่งที่เปลี่ยนแปลงจริง (change_details)
+====================================================
+
+กฎ:
+- ต้องเป็น list JSON
+- factual เท่านั้น
+- added removed modified
+- ถ้าไม่มีสาระสำคัญ → []
+- ให้ตอบเป็นภาษาไทย
+
+
+format:
+
+[
+  {{
+    "type": "added | removed | modified",
+    "description": "..."
+  }}
+]
+
+
 ----------------------------------------
 ประเภทการเปลี่ยนแปลง:
 {change_type}
@@ -78,15 +309,26 @@ async def generate_ai_comment(change: Change) -> None:
 {new_text}
 ----------------------------------------
 
-ตอบเฉพาะในรูปแบบ JSON เท่านั้น เช่น:
+
+====================================================
+OUTPUT FORMAT (JSON ONLY)
+====================================================
+
 {{
-  "ai_comment": "..."
+  "paragraph_topic": "...",
+  "change_category": "...",
+  "ai_comment": "...",
+  "change_details": []
 }}
+
+ห้ามข้อความอื่น
+ห้าม markdown
+ห้ามอธิบายนอก JSON
 """)
 
     chain = prompt | llm | StrOutputParser()
 
-    print(f"\n🧠 [DEBUG] วิเคราะห์ ai_comment สำหรับ Change: {change.change_type}")
+    print(f"\n🧠 [DEBUG] วิเคราะห์ FULL สำหรับ Change: {change.change_type}")
 
     try:
         raw_output = await chain.ainvoke({
@@ -98,29 +340,49 @@ async def generate_ai_comment(change: Change) -> None:
         raw_output = raw_output.strip()
         data = _safe_parse_json(raw_output)
 
+        # =========================
+        # ai_comment
+        # =========================
         change.ai_comment = data.get(
             "ai_comment",
             "มีการเปลี่ยนแปลงในส่วนนี้ กรุณาตรวจสอบรายละเอียดเพิ่มเติม"
         )
 
+        # =========================
+        # paragraph_topic
+        # =========================
+        change.paragraph_topic = data.get(
+            "paragraph_topic",
+            "ไม่สามารถสรุปหัวข้อได้"
+        )
+
+        # =========================
+        # change_category
+        # =========================
+        cat = str(data.get("change_category", "")).lower().strip()
+        if cat not in VALID_CATEGORIES:
+            print(f"⚠️ [DEBUG] invalid category: {cat}")
+            cat = "unknown"
+        change.change_category = cat
+
+        # =========================
+        # ⭐ NEW change_details
+        # =========================
+        change.change_details = data.get("change_details", [])
+
     except Exception as e:
-        print(f"❌ [ERROR] วิเคราะห์ ai_comment ล่ม: {e}")
-        # โยน error ให้ wrapper ทำ retry
+        print(f"❌ [ERROR] วิเคราะห์ FULL ล่ม: {e}")
         raise
 
-# ==================================================
-# Async wrapper (ห่อ generate_ai_comment) + RETRY
-# =================================================
 
+# ==================================================
+# Async wrapper + RETRY
+# ==================================================
 async def generate_ai_comment_async(
-    change: Change, 
+    change: Change,
     semaphore: asyncio.Semaphore,
     max_retries: int = 2
 ):
-    """
-    Async wrapper สำหรับ generate_ai_comment
-    - ใช้ semaphore ที่ถูกสร้างใน event loop เดียวกัน
-    """
 
     async with semaphore:
         last_error = None
@@ -131,7 +393,7 @@ async def generate_ai_comment_async(
                     print(f"🔁 [RETRY {attempt}/{max_retries}] Change: {change.change_type}")
 
                 await generate_ai_comment(change)
-                return  # สำเร็จ → ออก
+                return
 
             except Exception as e:
                 last_error = e
@@ -139,23 +401,23 @@ async def generate_ai_comment_async(
                 await asyncio.sleep(1.0)
 
         print(f"❌ [FATAL] วิเคราะห์ Change ไม่สำเร็จหลัง retry {max_retries} ครั้ง")
+
         change.ai_comment = (
             "มีการเปลี่ยนแปลงในส่วนนี้ "
             "แต่ระบบไม่สามารถวิเคราะห์ได้หลังจากลองหลายครั้ง"
         )
+        change.paragraph_topic = "analysis_failed"
+        change.change_category = "unknown"
+        change.change_details = []
 
 
 # ==================================================
-# Run ai_comment in parallel (เรียกจากไฟล์นี้)
+# Run parallel
 # ==================================================
 async def run_generate_ai_comment_parallel(changes: List[Change]):
-    """
-    ยิง generate_ai_comment พร้อมกันหลาย Change
-    - สร้าง semaphore ภายใน event loop เดียวกัน (ป้องกัน error)
-    """
 
     SEMAPHORE_LIMIT = int(os.getenv("LLM_PARALLEL_LIMIT", 8))
-    semaphore = asyncio.Semaphore(SEMAPHORE_LIMIT)  # ✅ สร้างตรงนี้ (ถูกต้อง)
+    semaphore = asyncio.Semaphore(SEMAPHORE_LIMIT)
 
     results = await asyncio.gather(
         *[
@@ -165,8 +427,6 @@ async def run_generate_ai_comment_parallel(changes: List[Change]):
         return_exceptions=True
     )
 
-    # Debug: แสดงเฉพาะเคสที่ยัง error จริง ๆ
     for i, r in enumerate(results):
         if isinstance(r, Exception):
             print(f"⚠️ [PARALLEL ERROR] Change index {i}: {r}")
-

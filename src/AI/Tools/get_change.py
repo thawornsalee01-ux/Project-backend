@@ -52,7 +52,9 @@ def get_change_paragraph(change_id: int) -> str:
             for rc in related_changes:
                 related_context += f"""
 - Section: {rc.section_label or "-"}
-  ประเภท: {rc.change_type}
+  หัวข้อการเปลี่ยนแปลง: {rc.paragraph_topic or "-"}
+  ประเภทการเปลี่ยนแปลง: {rc.change_category or "-"}
+  รายละเอียดการเปลี่ยนแปลง: {rc.change_details or "-"}
   AI Comment: {rc.ai_comment or "-"}
 """
         else:
@@ -71,7 +73,9 @@ def get_change_paragraph(change_id: int) -> str:
 PARAGRAPH เป้าหมาย
 ==============================
 Section: {change.section_label or "-"}
-ประเภทการเปลี่ยนแปลง: {change.change_type}
+หัวข้อการเปลี่ยนแปลง: {change.paragraph_topic or "-"}
+ประเภทการเปลี่ยนแปลง: {change.change_category or "-"}
+รายละเอียดการเปลี่ยนแปลง: {change.change_details or "-"}
 
 ------------------------------
 ข้อความเดิม:

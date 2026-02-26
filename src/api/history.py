@@ -87,6 +87,7 @@ class ComparisonItemModel(BaseModel):
     contract_impact_score: Optional[float] = None
     stakeholder_impact_score: Optional[float] = None
     architecture_impact_score: Optional[float] = None
+    risk_comment: Optional[str] = None
 
 class ImpactScoresModel(BaseModel):
     scope_impact_score: float
@@ -199,6 +200,7 @@ async def list_comparison_runs(limit: int = 50, db=Depends(get_db)):
                 contract_impact_score=c.contract_impact_score,
                 stakeholder_impact_score=c.stakeholder_impact_score,
                 architecture_impact_score=c.architecture_impact_score,
+                risk_comment=c.risk_comment,
             )
         )
     return items
@@ -242,21 +244,33 @@ def process_continue_job(
     try:
         continue_jobs[job_id]["status"] = JobStatus.running
 
+        # ⭐ callback แบบ v1 (message only)
+        def progress_callback(message, progress=None):
+            continue_jobs[job_id]["current_step"] = message
+            continue_jobs[job_id]["logs"].append(message)
+
+            if progress is not None:
+                continue_jobs[job_id]["progress"] = progress
+
         result = asyncio.run(
             run_compare_v2(
                 document_id=document_id,
                 v2_file_bytes=v2_bytes,
                 v2_label=v2_label,
+                progress_callback=progress_callback,
             )
         )
 
         continue_jobs[job_id]["status"] = JobStatus.done
         continue_jobs[job_id]["result"] = result
+        continue_jobs[job_id]["current_step"] = "Completed"
+        continue_jobs[job_id]["logs"].append("Completed")
 
     except Exception as e:
         print(f"❌ Job {job_id} failed: {e}")
         continue_jobs[job_id]["status"] = JobStatus.error
         continue_jobs[job_id]["error"] = str(e)
+
 
 # ======================================================
 # 🔹 POST /compare/continue/start
@@ -289,10 +303,15 @@ async def compare_continue_start(
     job_id = str(uuid.uuid4())
 
     continue_jobs[job_id] = {
-        "status": JobStatus.pending,
-        "result": None,
-        "error": None,
-    }
+    "status": JobStatus.pending,
+    "result": None,
+    "error": None,
+
+    # ⭐ log system
+    "progress": 0,
+    "current_step": "Starting comparison",
+    "logs": ["Starting comparison"],
+    } 
 
     threading.Thread(
         target=process_continue_job,
@@ -311,10 +330,15 @@ def get_continue_status(job_id: str):
     if job_id not in continue_jobs:
         return {"status": "not_found"}
 
+    job = continue_jobs[job_id]
+
     return {
-        "job_id": job_id,
-        "status": continue_jobs[job_id]["status"],
+        "status": job["status"],
+        "progress": job.get("progress", 0),
+        "current_step": job.get("current_step"),
+        "logs": job.get("logs", [])[-50:],  # จำกัด log
     }
+
 
 # ======================================================
 # 🔹 GET /compare/continue/result/{job_id}
@@ -335,7 +359,6 @@ def get_continue_result(job_id: str):
 
     r = job["result"]
 
-    # === บังคับให้ตรงกับ Model เสมอ (กันพัง) ===
     safe_result = {
         "doc_name": r["doc_name"],
         "v1_label": r["v1_label"],
@@ -346,17 +369,14 @@ def get_continue_result(job_id: str):
         "paragraphs_v2": r["paragraphs_v2"],
         "changes_count": r["changes_count"],
         "edit_intensity": r["edit_intensity"],
-
         "summary_text": r["summary_text"],
         "overall_risk_level": r["overall_risk_level"],
         "impact_scores": r["impact_scores"],
         "risk_comment": r["risk_comment"],
-
         "json_report_path": r["json_report_path"],
         "html_report_path": r["html_report_path"],
         "json_report_url": r["json_report_url"],
         "html_report_url": r["html_report_url"],
-
         "run_id": r["run_id"],
         "runtime_minutes": r["runtime_minutes"],
         "runtime_seconds": r["runtime_seconds"],

@@ -82,6 +82,9 @@ def bulk_insert_changes(
 
             ai_comment=ch.get("ai_comment"),
             ai_suggestion=ch.get("ai_suggestion"),
+            paragraph_topic=ch.get("paragraph_topic"),
+            change_category=ch.get("change_category"),
+            change_details=ch.get("change_details"),
         )
 
         db.add(item)

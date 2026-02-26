@@ -111,7 +111,9 @@ class ChangeItem(Base):
 
     ai_comment = Column(Text, nullable=True)
     ai_suggestion = Column(Text, nullable=True)
-
+    paragraph_topic = Column(Text, nullable=True)
+    change_category = Column(String(50), nullable=True)
+    change_details = Column(Text, nullable=True)
     comparison = relationship("Comparison", back_populates="changes")
 
 

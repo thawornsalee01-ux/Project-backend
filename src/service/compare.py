@@ -2,6 +2,7 @@ from pathlib import Path
 import logging
 import time
 from typing import Optional, List
+import json
 
 from src.db.models import  Document
 from src.db.session import SessionLocal
@@ -31,6 +32,7 @@ from src.AI.ai_sum import build_summary_text
 logger = logging.getLogger(__name__)
 
 
+
 async def run_compare(
     doc_name: str,
     v1_file_bytes: Optional[bytes] = None,
@@ -39,23 +41,22 @@ async def run_compare(
     v2_filename: Optional[str] = None,
     v1_label: str = "v1",
     v2_label: str = "v2",
+    progress_callback=None,   # ⭐ เพิ่มอันเดียว
 ) -> dict:
-    """
-    เปรียบเทียบ PDF ทั้งสองเวอร์ชัน
 
-    ✅ RULE (ตามที่คุณต้องการ):
-    - document.id = comparison.id = changes.comparison_id
-    - ลบ 9 → รอบถัดไปได้ 9 กลับมา
-    - ดูเฉพาะเลขล่าสุด (MAX id) เท่านั้น
-    """
+    # ⭐ helper log (ไม่กระทบของเดิม)
+    def log(msg, progress=None):
+        print(msg)
+        if progress_callback:
+            progress_callback(msg, progress)
 
     start_time = time.perf_counter()
-    print("\n🕒 เริ่มจับเวลา run_compare ...")
+    log("\n🕒 เริ่มจับเวลาการทำงาน ...", 0)
 
     # ==================================================
     # Load PDFs
     # ==================================================
-    print("📄 Loading Document...")
+    log("📄 กำลังอ่านเอกสาร...", 5)
     loader = DocumentLoader()
     try:
         pages_old = loader.load_from_bytes(v1_file_bytes)
@@ -64,7 +65,7 @@ async def run_compare(
         v1_filename = v1_filename or f"{doc_name}_{v1_label}.pdf"
         v2_filename = v2_filename or f"{doc_name}_{v2_label}.pdf"
 
-        print(
+        log(
             f"  Loaded {len(pages_old)} pages from V1, {len(pages_new)} pages from V2"
         )
 
@@ -75,7 +76,7 @@ async def run_compare(
     # ==================================================
     # Split paragraphs
     # ==================================================
-    print("✂ Splitting paragraphs...")
+    log("📄 กำลังอ่านเอกสาร...", 15)
     splitter = ParagraphSplitter()
     old_paragraphs = splitter.split(pages_old)
     new_paragraphs = splitter.split(pages_new)
@@ -83,7 +84,7 @@ async def run_compare(
     # ==================================================
     # Embedding
     # ==================================================
-    print("🔗 Embedding paragraphs...")
+    log("🔍 กำลังตรวจสอบการเปลี่ยนแปลงของเอกสาร...", 30)
     embedder = EmbeddingService()
     embedder.embed_paragraphs(old_paragraphs)
     embedder.embed_paragraphs(new_paragraphs)
@@ -91,14 +92,14 @@ async def run_compare(
     # ==================================================
     # Matching
     # ==================================================
-    print("🔍 Matching paragraphs (Stage 1)...")
+    log("🔍 กำลังตรวจสอบการเปลี่ยนแปลงของเอกสาร...", 45)
     matcher = ParagraphMatcher(threshold=0.75)
     stage1_matches = matcher.match(old_paragraphs, new_paragraphs)
 
     # ==================================================
     # Resolve
     # ==================================================
-    print("🧠 Resolving semantic changes (Stage 2)...")
+    log("🔍 กำลังตรวจสอบการเปลี่ยนแปลงของเอกสาร...", 60)
     resolver = MatchResolver(chunk_threshold=0.85)
     resolved_matches = resolver.resolve(
         stage1_matches, old_paragraphs, new_paragraphs
@@ -107,48 +108,47 @@ async def run_compare(
     # ==================================================
     # Diff
     # ==================================================
-    print("📝 Building changes (Diff)...")
+    log("🔍 กำลังตรวจสอบการเปลี่ยนแปลงของเอกสาร...", 70)
     diff_engine = DiffEngine()
     changes: List[DiffChange] = diff_engine.build_changes(resolved_matches)
 
     edit_intensity = diff_engine.compute_edit_intensity(changes)
-    print("✏️ Edit Intensity:", edit_intensity)
+    log(f"✏️ ระดับของการเปลี่ยนแปลง: {edit_intensity}")
 
     # ==================================================
     # AI summary + Risk
     # ==================================================
-    print("🤖 LLM per-change analysis (parallel) ...")
+    log("🤖 กำลังวิเคราะห์การเปลี่ยนแปลงที่เกิดขึ้นด้วย AI ...", 75)
     await run_generate_ai_comment_parallel(changes)
+    log("🤖 กำลังวิเคราะห์และให้คำแนะนำด้วย AI ...", 80)
     await run_generate_ai_suggestion_parallel(changes)
 
-    print("🤖 Building summary + impact analysis ...")
+    log("📊 กำลังสรุปผลการเปรียบเทียบ...", 85)
     summary_result = build_summary_text(changes)
 
     summary_text = summary_result["summary_text"]
-    overall_risk_level = summary_result["overall_risk_level"]   # อ่านจาก AI โดยตรง
+    overall_risk_level = summary_result["overall_risk_level"]
     impact_scores = summary_result["impact_scores"]
     risk_comment = summary_result["risk_comment"]
 
     # ==================================================
-    # 🔥 CORE FIX: คุมเลข document_id เอง (ดูเฉพาะเลขล่าสุด)
+    # DB SAVE
     # ==================================================
+    log("💾 บันทึกข้อมูลลง...", 90)
     db = SessionLocal()
     try:
-        # ===== 1) หาเลขล่าสุด แล้ว +1 (เติมช่องว่างเฉพาะท้าย)
         last_id = db.query(Document.id).order_by(Document.id.desc()).first()
         if last_id is None:
             new_id = 1
         else:
             new_id = last_id[0] + 1
 
-        print(f"🆔 Using document_id = {new_id}")
+        log(f"🆔 Using document_id = {new_id}")
 
-        # ===== 2) สร้าง Document จริง (ใช้เลขที่เราคุมเอง)
         real_doc = Document(id=new_id, name=doc_name)
         db.add(real_doc)
         db.flush()
 
-        # ===== 3) บันทึกหน้าเอกสาร (ใช้ document_id = new_id)
         save_document_pages(
             db=db,
             document_id=new_id,
@@ -165,18 +165,14 @@ async def run_compare(
             version_pdf="new",
         )
 
-        # ===== 4) สร้าง Version ภายใต้ document เดียวกัน
         ver1 = create_document_version(db, real_doc, v1_label, v1_filename)
         ver2 = create_document_version(db, real_doc, v2_label, v2_filename)
 
-        # ===== 5) สร้าง Comparison โดยใช้ id เดียวกับ document
         comp = create_comparison(
-        db, real_doc, ver1, ver2, overall_risk_level, summary_text
+            db, real_doc, ver1, ver2, overall_risk_level, summary_text
         )
 
         comp.edit_intensity = edit_intensity
-
-# บันทึกคะแนนใหม่ (ตรงกับ Column ที่คุณเคยกำหนด)
         comp.scope_impact_score = impact_scores["scope_impact_score"]
         comp.timeline_impact_score = impact_scores["timeline_impact_score"]
         comp.cost_impact_score = impact_scores["cost_impact_score"]
@@ -185,12 +181,9 @@ async def run_compare(
         comp.contract_impact_score = impact_scores["contract_impact_score"]
         comp.stakeholder_impact_score = impact_scores["stakeholder_impact_score"]
         comp.architecture_impact_score = impact_scores["architecture_impact_score"]
-
-# (ถ้าคุณมีคอลัมน์เก็บคำอธิบายรวม)
         comp.risk_comment = risk_comment
         comp.overall_risk_level = overall_risk_level
 
-        # ===== 6) บันทึก changes (จะได้ changes.comparison_id = new_id)
         change_dicts: List[dict] = []
         for c in changes:
             change_dicts.append(
@@ -202,12 +195,18 @@ async def run_compare(
                     "edit_severity": getattr(c, "edit_severity", None),
                     "ai_comment": getattr(c, "ai_comment", None),
                     "ai_suggestion": getattr(c, "ai_suggestion", None),
+                    "paragraph_topic": getattr(c, "paragraph_topic", None),
+                    "change_category": getattr(c, "change_category", None),
+                    "change_details": json.dumps(
+                    getattr(c, "change_details", []),
+                    ensure_ascii=False
+                    ),
                 }
             )
 
         bulk_insert_changes(db, comp, change_dicts)
         db.commit()
-        run_id = comp.id   # = document_id
+        run_id = comp.id
 
     except Exception:
         db.rollback()
@@ -218,10 +217,9 @@ async def run_compare(
     # ==================================================
     # Build reports
     # ==================================================
+    log("📁 กำลังสร้างรายงาน...", 95)
     reporter = ReportBuilder()
-    json_path = Path(
-        reporter.save_json(doc_name, v1_label, v2_label, changes)
-    )
+    json_path = Path(reporter.save_json(doc_name, v1_label, v2_label, changes))
     html_path = Path(
         reporter.save_html(
             doc_name,
@@ -234,14 +232,16 @@ async def run_compare(
         )
     )
 
-    # จับเวลา
     end_time = time.perf_counter()
     elapsed_seconds = end_time - start_time
     minutes = int(elapsed_seconds // 60)
     seconds = elapsed_seconds % 60
 
-    print(f"\n⏱️ TOTAL RUNTIME: {round(elapsed_seconds, 2)} seconds "
-          f"({minutes} minutes {round(seconds, 2)} seconds)")
+    log(
+        f"\n⏱️ เวลาการทำงาน: {round(elapsed_seconds, 2)} วินาที "
+        f"({minutes} นาที {round(seconds, 2)} วินาที)",
+        100
+    )
 
     return {
         "doc_name": doc_name,

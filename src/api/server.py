@@ -86,6 +86,17 @@ def get_db():
 # เก็บสถานะงาน (In-Memory)
 jobs: Dict[str, Dict[str, Any]] = {}
 
+def push_log(job_id: str, message: str, progress: int = None):
+    job = jobs[job_id]
+
+    job["logs"].append(message)
+    job["current_step"] = message
+
+    if progress is not None:
+        job["progress"] = progress
+
+    print(f"[JOB {job_id}] {message}")
+
 def process_compare_job(job_id: str, doc_name: str, v1_label: str, v2_label: str,
                         file_v1_bytes: bytes, file_v2_bytes: bytes):
     try:
@@ -99,6 +110,7 @@ def process_compare_job(job_id: str, doc_name: str, v1_label: str, v2_label: str
                 v2_file_bytes=file_v2_bytes,
                 v1_label=v1_label,
                 v2_label=v2_label,
+                progress_callback=lambda m,p: push_log(job_id, m, p)   # ⭐ เพิ่ม
             )
         )
 
@@ -128,6 +140,10 @@ async def start_compare_job(
         "status": "processing",
         "result": None,
         "error": None,
+        "logs": [],              # ⭐ เพิ่ม
+        "progress": 0,           # ⭐ เพิ่ม
+        "current_step": "starting"  # ⭐ เพิ่ม
+
     }
 
     # รันงานใน Thread แยก
@@ -145,7 +161,14 @@ def check_status(job_id: str):
     if job_id not in jobs:
         return {"status": "not_found"}
 
-    return {"status": jobs[job_id]["status"]}
+    job = jobs[job_id]
+
+    return {
+    "status": job["status"],
+    "progress": job.get("progress", 0),
+    "current_step": job.get("current_step"),
+    "logs": job.get("logs", [])[-50:]
+    }
 
 # --------- (ใหม่) API #3: ดึงผลลัพธ์ ---------
 @app.get("/compare/result/{job_id}")
